@@ -135,23 +135,40 @@ class SonusBrain:
         except Exception as e:
             return {"error": f"Analysis failed: {str(e)}"}
 
+    def load_track(self, file_path):
+        """Load an audio track for analysis."""
+        if not os.path.exists(file_path):
+            return {"error": f"File not found: {file_path}"}
+        self.state["current_track"] = file_path
+        print(f"✅ Track loaded: {file_path}")
+        return {"status": "loaded", "path": file_path}
+
     def get_vst_recipe(self, plugin="serum", patch="ophelia_bass"):
         """Returns literal parameter recipes for plugins."""
         if plugin in self.knowledge['vst'] and patch in self.knowledge['vst'][plugin]:
             return self.knowledge['vst'][plugin][patch]
         return None
-        """Perform a deep, objective technical critique of the loaded track."""
+
+    def deep_vibe_analysis(self):
+        """Extract mood, energy, and rhythm features using AdvancedDSPEngine."""
         if not self.state["current_track"]:
             return {"error": "No track loaded. Use load_track() first."}
-
-        print(f"🔍 Performing deep micro-analysis on {self.state['current_track']}...")
         
+        print(f"🧬 Extracting deep vibe features from {self.state['current_track']}...")
         try:
-            analyzer = MicroAnalyzer(self.state["current_track"])
-            report = analyzer.get_full_critique()
-            return report
+            dsp = AdvancedDSPEngine(self.state["current_track"])
+            vibe = dsp.get_vibe_analysis()
+            pitch = dsp.get_pitch_trajectory()
+            transient = dsp.get_transient_analysis()
+            
+            return {
+                "vibe": vibe,
+                "pitch": pitch,
+                "transient": transient,
+                "findings": []
+            }
         except Exception as e:
-            return {"error": f"Analysis failed: {str(e)}"}
+            return {"error": f"Vibe analysis failed: {str(e)}"}
 
     def analyze_audio(self):
         """
