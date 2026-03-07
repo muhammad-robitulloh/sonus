@@ -27,3 +27,4 @@ python-multipart
 scipy
 soundfile
 uvicorn
+replit-object-storage

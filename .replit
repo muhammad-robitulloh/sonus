@@ -37,3 +37,6 @@ externalPort = 80
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "PYTHONPATH=/home/runner/workspace/src gunicorn --bind=0.0.0.0:5000 --reuse-port --worker-class uvicorn.workers.UvicornWorker src.web.app:app"]
+
+[objectStorage]
+defaultBucketID = "replit-objstore-8882d102-db13-4775-acbc-ae8bcaaa7daf"
