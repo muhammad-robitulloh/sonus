@@ -1,0 +1,19 @@
+{
+    "ophelia": {
+        "lufs_target": -14.0,
+        "true_peak_max": -1.0,
+        "stereo_mono_cutoff_hz": 120,
+        "crest_factor_min": 7.0,
+        "sub_bass_masking_threshold_db": -3.0,
+        "vibe": "Melodic / Cinematic / Heavy",
+        "description": "Clean transients, wide mids, mono sub-bass, high emotional impact."
+    },
+    "monstercat_uncaged": {
+        "lufs_target": -7.0,
+        "true_peak_max": -0.5,
+        "stereo_mono_cutoff_hz": 100,
+        "crest_factor_min": 5.0,
+        "vibe": "Aggressive / High Energy",
+        "description": "Very loud, distorted but controlled, punchy drums."
+    }
+}

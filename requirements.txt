@@ -1,0 +1,16 @@
+numpy
+librosa
+aubio
+essentia
+pyo
+mido
+music21
+click
+colorama
+scipy
+soundfile
+pyloudnorm
+fastapi
+uvicorn
+python-multipart
+jinja2
