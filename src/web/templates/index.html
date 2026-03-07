@@ -108,24 +108,68 @@
             const res = await fetch(`/critique?label=${label}`);
             const data = await res.json();
             
+            if (data.error) {
+                const list = document.getElementById('findings_list');
+                list.innerHTML = '';
+                const item = document.createElement('div');
+                item.className = 'p-4 bg-yellow-900/20 border-l-4 border-yellow-500 text-yellow-200 text-sm';
+                item.innerText = '⚠️ ' + data.error;
+                list.appendChild(item);
+                document.getElementById('lufs_val').innerText = '--';
+                document.getElementById('peak_val').innerText = '--';
+                document.getElementById('score_val').innerText = '--';
+                return;
+            }
+            
             document.getElementById('lufs_val').innerText = `${data.mastering_report.lufs.integrated_lufs.toFixed(1)} dB`;
             document.getElementById('peak_val').innerText = `${data.mastering_report.true_peak.true_peak_db.toFixed(2)} dB`;
             document.getElementById('score_val').innerText = `${data.overall_score.toFixed(1)}/10`;
             
             const list = document.getElementById('findings_list');
             list.innerHTML = '';
-            data.findings.forEach(f => {
+            if (!data.findings || data.findings.length === 0) {
                 const item = document.createElement('div');
-                item.className = 'p-3 bg-red-900/10 border-l-4 border-red-500 text-red-200 text-sm';
-                item.innerText = f;
+                item.className = 'p-3 bg-green-900/10 border-l-4 border-green-500 text-green-200 text-sm';
+                item.innerText = '✅ No issues detected!';
                 list.appendChild(item);
-            });
+            } else {
+                data.findings.forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'p-3 bg-red-900/10 border-l-4 border-red-500 text-red-200 text-sm';
+                    item.innerText = f;
+                    list.appendChild(item);
+                });
+            }
         }
 
         async function runVibe() {
             const res = await fetch('/vibe');
             const data = await res.json();
-            alert(`BPM: ${data.vibe.tempo.toFixed(1)} | Energy: ${data.vibe.vibe_estimate}`);
+            
+            if (data.error) {
+                const list = document.getElementById('findings_list');
+                list.innerHTML = '';
+                const item = document.createElement('div');
+                item.className = 'p-4 bg-yellow-900/20 border-l-4 border-yellow-500 text-yellow-200 text-sm';
+                item.innerText = '⚠️ ' + data.error;
+                list.appendChild(item);
+                return;
+            }
+            
+            const bpm = data.vibe?.tempo?.toFixed(1) || '--';
+            const energy = data.vibe?.vibe_estimate || '--';
+            const list = document.getElementById('findings_list');
+            list.innerHTML = '';
+            
+            const item = document.createElement('div');
+            item.className = 'p-4 bg-purple-900/20 border-l-4 border-purple-500 text-purple-200 text-sm';
+            item.innerHTML = `
+                <div><strong>🎵 BPM:</strong> ${bpm}</div>
+                <div><strong>⚡ Energy:</strong> ${energy}</div>
+                <div><strong>🎸 Avg Pitch:</strong> ${data.pitch?.avg_pitch_hz?.toFixed(0) || '--'} Hz</div>
+                <div><strong>📊 Onset Count:</strong> ${data.transient?.onset_count || '--'}</div>
+            `;
+            list.appendChild(item);
         }
     </script>
 </body>
