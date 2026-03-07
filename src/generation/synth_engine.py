@@ -1,28 +1,37 @@
-from pyo import *
 import numpy as np
+
+try:
+    from pyo import *
+    PYO_AVAILABLE = True
+except ImportError:
+    PYO_AVAILABLE = False
 
 class PyoSynthEngine:
     def __init__(self):
-        # Server pyo (audio processing)
-        self.s = Server(duplex=0).boot()
-        self.s.start()
+        if PYO_AVAILABLE:
+            self.s = Server(duplex=0).boot()
+            self.s.start()
+        else:
+            self.s = None
 
     def generate_sine_preview(self, freq=440, dur=1.0):
-        """Menghasilkan nada sine sederhana untuk preview melodi."""
-        env = Adsr(attack=0.01, decay=0.1, sustain=0.5, release=0.2, dur=dur, mul=0.3)
-        osc = Sine(freq=freq, mul=env).out()
-        env.play()
-        # In actual usage, we'd record this to a file or play it
-        return "Sine preview generated at {} Hz".format(freq)
+        """Generate a simple sine tone for melody preview."""
+        if PYO_AVAILABLE and self.s:
+            env = Adsr(attack=0.01, decay=0.1, sustain=0.5, release=0.2, dur=dur, mul=0.3)
+            osc = Sine(freq=freq, mul=env).out()
+            env.play()
+            return "Sine preview generated at {} Hz".format(freq)
+        else:
+            return f"Sine preview at {freq} Hz (audio playback unavailable in this environment)"
 
     def suggest_fm_params(self, carrier=100, ratio=1.5, index=5):
-        """Memberikan saran parameter FM Synthesis (Frequency Modulation)."""
-        # Suggesting params for a 'Growl' or 'Pluck' sound
+        """Provide FM Synthesis parameter suggestions."""
         if index > 10:
-            return "Saran: Index tinggi (>10) menghasilkan tekstur harmonik yang kompleks/noisy, cocok untuk bass EDM."
+            return "Suggestion: High index (>10) produces complex/noisy harmonic texture, great for EDM bass."
         else:
-            return "Saran: Ratio 1.5 - 2.0 memberikan karakter suara yang harmonis dan 'clean'."
+            return "Suggestion: Ratio 1.5-2.0 gives a harmonic and 'clean' sound character."
 
     def stop(self):
-        self.s.stop()
-        self.s.shutdown()
+        if PYO_AVAILABLE and self.s:
+            self.s.stop()
+            self.s.shutdown()

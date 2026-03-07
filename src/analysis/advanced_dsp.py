@@ -1,6 +1,10 @@
 import numpy as np
 import librosa
-import aubio
+try:
+    import aubio
+    AUBIO_AVAILABLE = True
+except ImportError:
+    AUBIO_AVAILABLE = False
 import essentia.standard as es
 
 class AdvancedDSPEngine:
@@ -8,7 +12,7 @@ class AdvancedDSPEngine:
         self.file_path = file_path
 
     def get_vibe_analysis(self):
-        """Menganalisis suasana (mood), danceability, dan genre menggunakan Essentia."""
+        """Analyzes mood, danceability, and genre using Essentia."""
         loader = es.MonoLoader(filename=self.file_path)
         audio = loader()
 
@@ -26,46 +30,50 @@ class AdvancedDSPEngine:
         }
 
     def get_pitch_trajectory(self):
-        """Menganalisis pitch menggunakan Aubio (sangat akurat)."""
-        win_s = 4096
-        hop_s = 512
-        samplerate = 44100
-        
-        s = aubio.source(self.file_path, samplerate, hop_s)
-        samplerate = s.samplerate
-        pitch_o = aubio.pitch("default", win_s, hop_s, samplerate)
-        pitch_o.set_unit("Hz")
-        pitch_o.set_tolerance(0.8)
-
-        pitches = []
-        while True:
-            samples, read = s()
-            pitch = pitch_o(samples)[0]
-            if pitch_o.get_confidence() > 0.8:
-                pitches.append(pitch)
-            if read < hop_s: break
+        """Analyzes pitch using aubio if available, otherwise librosa."""
+        if AUBIO_AVAILABLE:
+            win_s = 4096
+            hop_s = 512
+            samplerate = 44100
             
-        return {
-            "avg_pitch_hz": float(np.mean(pitches)) if pitches else 0,
-            "max_pitch_hz": float(np.max(pitches)) if pitches else 0,
-            "pitch_count": len(pitches)
-        }
+            s = aubio.source(self.file_path, samplerate, hop_s)
+            samplerate = s.samplerate
+            pitch_o = aubio.pitch("default", win_s, hop_s, samplerate)
+            pitch_o.set_unit("Hz")
+            pitch_o.set_tolerance(0.8)
+
+            pitches = []
+            while True:
+                samples, read = s()
+                pitch = pitch_o(samples)[0]
+                if pitch_o.get_confidence() > 0.8:
+                    pitches.append(pitch)
+                if read < hop_s: break
+                
+            return {
+                "avg_pitch_hz": float(np.mean(pitches)) if pitches else 0,
+                "max_pitch_hz": float(np.max(pitches)) if pitches else 0,
+                "pitch_count": len(pitches)
+            }
+        else:
+            y, sr = librosa.load(self.file_path)
+            f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
+            pitches = f0[voiced_flag] if voiced_flag is not None else []
+            pitches = [p for p in pitches if p > 0]
+            return {
+                "avg_pitch_hz": float(np.mean(pitches)) if len(pitches) > 0 else 0,
+                "max_pitch_hz": float(np.max(pitches)) if len(pitches) > 0 else 0,
+                "pitch_count": len(pitches)
+            }
 
     def get_transient_analysis(self):
-        """Menganalisis ketajaman transien (kick/snare) menggunakan Aubio."""
-        hop_s = 512
-        s = aubio.source(self.file_path, 0, hop_s)
-        samplerate = s.samplerate
-        o = aubio.onset("default", 2048, hop_s, samplerate)
+        """Analyzes transient sharpness using librosa."""
+        y, sr = librosa.load(self.file_path)
+        onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
+        onset_times = librosa.frames_to_time(onset_frames, sr=sr)
+        duration = librosa.get_duration(y=y, sr=sr)
         
-        onsets = []
-        while True:
-            samples, read = s()
-            if o(samples):
-                onsets.append(o.get_last_s())
-            if read < hop_s: break
-            
         return {
-            "onset_count": len(onsets),
-            "onset_density": len(onsets) / (s.duration / samplerate) if s.duration > 0 else 0
+            "onset_count": len(onset_times),
+            "onset_density": len(onset_times) / duration if duration > 0 else 0
         }

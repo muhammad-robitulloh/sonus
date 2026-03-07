@@ -14,3 +14,16 @@ fastapi
 uvicorn
 python-multipart
 jinja2
+click
+colorama
+fastapi
+jinja2
+librosa
+mido
+music21
+numpy
+pyloudnorm
+python-multipart
+scipy
+soundfile
+uvicorn
