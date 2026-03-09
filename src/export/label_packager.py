@@ -40,36 +40,21 @@ class LabelPackager:
         # Save as readable TXT report for A&R
         txt_path = os.path.join(self.output_dir, f"{track_name}_tech_sheet.txt")
         with open(txt_path, 'w') as f:
-            f.write(f"--- TECHNICAL SUBMISSION SHEET ---
-")
-            f.write(f"Track: {dossier['track_title']}
-")
-            f.write(f"Artist: {dossier['artist']}
-")
-            f.write(f"Date: {dossier['submission_date']}
-
-")
+            f.write(f"--- TECHNICAL SUBMISSION SHEET ---\n")
+            f.write(f"Track: {dossier['track_title']}\n")
+            f.write(f"Artist: {dossier['artist']}\n")
+            f.write(f"Date: {dossier['submission_date']}\n\n")
             
-            f.write("[TECHNICAL SPECS]
-")
-            f.write(f"BPM: {dossier['technical_specs']['bpm']}
-")
-            f.write(f"Key: {dossier['technical_specs']['key']}
-")
-            f.write(f"Loudness: {dossier['technical_specs']['integrated_lufs']:.1f} LUFS (Target: -14.0)
-")
-            f.write(f"True Peak: {dossier['technical_specs']['true_peak_db']:.2f} dBTP
-
-")
+            f.write("[TECHNICAL SPECS]\n")
+            f.write(f"BPM: {dossier['technical_specs']['bpm']}\n")
+            f.write(f"Key: {dossier['technical_specs']['key']}\n")
+            f.write(f"Loudness: {dossier['technical_specs']['integrated_lufs']:.1f} LUFS (Target: -14.0)\n")
+            f.write(f"True Peak: {dossier['technical_specs']['true_peak_db']:.2f} dBTP\n\n")
             
-            f.write("[SONUS ANALYSIS]
-")
-            f.write(f"Contrast Ratio (Intro vs Drop): {dossier['emotional_profile']['density_contrast']:.2f}
-")
-            f.write("Production Notes:
-")
+            f.write("[SONUS ANALYSIS]\n")
+            f.write(f"Contrast Ratio (Intro vs Drop): {dossier['emotional_profile']['density_contrast']:.2f}\n")
+            f.write("Production Notes:\n")
             for note in dossier['production_notes']:
-                f.write(f"- {note}
-")
+                f.write(f"- {note}\n")
                 
         return json_path

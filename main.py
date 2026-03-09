@@ -3,6 +3,18 @@ import os
 import sys
 from colorama import init, Fore, Style
 
+# --- TERMUX COMPATIBILITY LAYER ---
+# Ensure system libraries (like libpulse.so) are found in Termux environment
+if os.path.exists('/data/data/com.termux/files/usr/lib'):
+    termux_lib = '/data/data/com.termux/files/usr/lib'
+    if termux_lib not in os.environ.get('LD_LIBRARY_PATH', ''):
+        os.environ['LD_LIBRARY_PATH'] = f"{os.environ.get('LD_LIBRARY_PATH', '')}:{termux_lib}".strip(':')
+        # On some Linux/Android systems, we must re-exec to pick up LD_LIBRARY_PATH changes
+        if not os.environ.get('SONUS_REEXEC'):
+            os.environ['SONUS_REEXEC'] = '1'
+            os.execv(sys.executable, [sys.executable] + sys.argv)
+# ----------------------------------
+
 # Add src to Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
@@ -34,8 +46,7 @@ def analyze(file_path):
 
     analysis = brain.analyze_audio()
     
-    click.echo(Fore.GREEN + "
---- Analysis Results ---")
+    click.echo(Fore.GREEN + "\n--- Analysis Results ---")
     click.echo(f"BPM: {analysis['bpm']}")
     click.echo(f"Key: {analysis['key']}")
     click.echo(f"Spectral Profile: {analysis['spectral_centroid']}")
@@ -291,8 +302,7 @@ def production(context):
     brain = SonusBrain()
     advice = brain.production_advice(context)
     
-    click.echo(Fore.MAGENTA + f"
---- Production Advice ({context}) ---")
+    click.echo(Fore.MAGENTA + f"\n--- Production Advice ({context}) ---")
     for tip in advice:
         click.echo(f"- {tip}")
 
@@ -300,10 +310,8 @@ def production(context):
 def interactive():
     """Start an interactive session with Sonus."""
     brain = SonusBrain()
-    click.echo(Fore.BLUE + Style.BRIGHT + "
---- Sonus Interactive Session ---")
-    click.echo("Type 'help' for commands, or 'exit' to quit.
-")
+    click.echo(Fore.BLUE + Style.BRIGHT + "\n--- Sonus Interactive Session ---")
+    click.echo("Type 'help' for commands, or 'exit' to quit.\n")
     
     while True:
         command = input(Fore.GREEN + "Sonus > " + Style.RESET_ALL).strip().lower()
@@ -316,9 +324,12 @@ def interactive():
             parts = command.split()
             if len(parts) > 1:
                 path = parts[1]
-                brain.load_track(path)
-                res = brain.analyze_audio()
-                print(res)
+                res_load = brain.load_track(path)
+                if "error" in res_load:
+                    print(res_load["error"])
+                else:
+                    res = brain.analyze_audio()
+                    print(res)
             else:
                 print("Usage: analyze <file_path>")
         elif command == "creative":

@@ -21,7 +21,9 @@ class CreativeContextBridge:
         narrative += f"The theme is {context['current_project']['theme']}. "
         
         # Example chord advice (in future, we'd extract actual chords using Music21)
-        narrative += "\n--- AI ADVICE QUERY ---\n"
+        narrative += """
+--- AI ADVICE QUERY ---
+"""
         narrative += "Based on my current state, what chord substitution or melodic motif could I use to increase 'emotional weight' (gravitasi)?"
         
         return {

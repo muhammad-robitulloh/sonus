@@ -27,6 +27,15 @@ class SonusBrain:
         self.knowledge = self._load_knowledge()
         print(f"🧠 Sonus initialized at: {self.project_path}")
 
+    def load_track(self, file_path):
+        """Loads a track into the brain state."""
+        if not os.path.exists(file_path):
+            return {"error": f"File not found: {file_path}"}
+        
+        self.state["current_track"] = file_path
+        print(f"✅ Loaded track: {file_path}")
+        return {"success": True, "file_path": file_path}
+
     def _load_knowledge(self):
         """Loads label standards and VST recipes."""
         base_path = os.path.dirname(os.path.dirname(__file__))
@@ -135,40 +144,32 @@ class SonusBrain:
         except Exception as e:
             return {"error": f"Analysis failed: {str(e)}"}
 
-    def load_track(self, file_path):
-        """Load an audio track for analysis."""
-        if not os.path.exists(file_path):
-            return {"error": f"File not found: {file_path}"}
-        self.state["current_track"] = file_path
-        print(f"✅ Track loaded: {file_path}")
-        return {"status": "loaded", "path": file_path}
+    def deep_vibe_analysis(self):
+        """Deep analysis of vibe, genre, and transients using Essentia/Aubio/Librosa."""
+        if not self.state["current_track"]:
+            return {"error": "No track loaded."}
+
+        print(f"🧬 Extracting deep features from {self.state['current_track']}...")
+        
+        try:
+            dsp = AdvancedDSPEngine(self.state["current_track"])
+            vibe_report = dsp.get_vibe_analysis()
+            pitch_report = dsp.get_pitch_trajectory()
+            transient_report = dsp.get_transient_analysis()
+            
+            return {
+                "vibe": vibe_report,
+                "pitch": pitch_report,
+                "transient": transient_report
+            }
+        except Exception as e:
+            return {"error": f"Deep vibe analysis failed: {str(e)}"}
 
     def get_vst_recipe(self, plugin="serum", patch="ophelia_bass"):
         """Returns literal parameter recipes for plugins."""
         if plugin in self.knowledge['vst'] and patch in self.knowledge['vst'][plugin]:
             return self.knowledge['vst'][plugin][patch]
         return None
-
-    def deep_vibe_analysis(self):
-        """Extract mood, energy, and rhythm features using AdvancedDSPEngine."""
-        if not self.state["current_track"]:
-            return {"error": "No track loaded. Use load_track() first."}
-        
-        print(f"🧬 Extracting deep vibe features from {self.state['current_track']}...")
-        try:
-            dsp = AdvancedDSPEngine(self.state["current_track"])
-            vibe = dsp.get_vibe_analysis()
-            pitch = dsp.get_pitch_trajectory()
-            transient = dsp.get_transient_analysis()
-            
-            return {
-                "vibe": vibe,
-                "pitch": pitch,
-                "transient": transient,
-                "findings": []
-            }
-        except Exception as e:
-            return {"error": f"Vibe analysis failed: {str(e)}"}
 
     def analyze_audio(self):
         """
